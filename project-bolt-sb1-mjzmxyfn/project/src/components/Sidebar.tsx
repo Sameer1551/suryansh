@@ -1,5 +1,5 @@
 import { type ReactNode, useState, useEffect, useRef } from 'react';
-import { Clapperboard, ChevronLeft, FileSpreadsheet, CheckCircle2, AlertTriangle, RefreshCw, Bell, Check, Calendar, ArrowRight, X, Clock, Sparkles } from 'lucide-react';
+import { Clapperboard, ChevronLeft, FileSpreadsheet, CheckCircle2, AlertTriangle, RefreshCw, Bell, Check, Calendar, ArrowRight, X, Clock, Sparkles, Cloud } from 'lucide-react';
 import { navItems, type ViewId } from './navigation';
 import { useData } from '@/store/DataContext';
 
@@ -86,7 +86,19 @@ export function Topbar({
 }) {
   const today = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   const todayStr = new Date().toISOString().slice(0, 10);
-  const { syncStatus, isFileLocked, lastSyncError, refreshData, followUps, activity, dispatch, addActivity } = useData();
+  const {
+    syncStatus,
+    isFileLocked,
+    lastSyncError,
+    refreshData,
+    followUps,
+    activity,
+    dispatch,
+    addActivity,
+    googleSyncStatus,
+    googleSyncMessage,
+    syncToGoogleSheets,
+  } = useData();
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [activeTab, setActiveTab] = useState<'alerts' | 'activity'>('alerts');
@@ -171,6 +183,44 @@ export function Topbar({
             <>
               <FileSpreadsheet size={14} className="text-status-success shrink-0" />
               <span className="hidden md:inline">Excel Synced</span>
+            </>
+          )}
+        </button>
+
+        {/* Google Sheets / Google Drive Cloud Sync Button */}
+        <button
+          onClick={() => syncToGoogleSheets()}
+          disabled={googleSyncStatus === 'syncing'}
+          title={googleSyncMessage || "Click to sync local Excel database directly to Google Sheets / Google Drive"}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+            googleSyncStatus === 'syncing'
+              ? 'bg-amber-500/15 text-amber-400 border-amber-500/40 shadow-sm shadow-amber-500/20 cursor-wait'
+              : googleSyncStatus === 'success'
+              ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40 shadow-sm shadow-emerald-500/20'
+              : googleSyncStatus === 'error'
+              ? 'bg-rose-500/15 text-rose-400 border-rose-500/40'
+              : 'bg-bg-secondary/60 text-text-secondary border-border-subtle hover:text-amber-400 hover:border-amber-500/40 hover:bg-amber-500/10'
+          }`}
+        >
+          {googleSyncStatus === 'syncing' ? (
+            <>
+              <RefreshCw size={14} className="text-amber-400 shrink-0 animate-spin" />
+              <span className="hidden md:inline">Syncing Google...</span>
+            </>
+          ) : googleSyncStatus === 'success' ? (
+            <>
+              <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+              <span className="hidden md:inline">Google Synced</span>
+            </>
+          ) : googleSyncStatus === 'error' ? (
+            <>
+              <AlertTriangle size={14} className="text-rose-400 shrink-0" />
+              <span className="hidden md:inline">Sync Failed</span>
+            </>
+          ) : (
+            <>
+              <Cloud size={14} className="text-amber-400 shrink-0" />
+              <span className="hidden md:inline">Google Sync</span>
             </>
           )}
         </button>

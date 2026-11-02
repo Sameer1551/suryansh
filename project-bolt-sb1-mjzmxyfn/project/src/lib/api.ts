@@ -100,3 +100,12 @@ export async function deleteRecordFromExcel(entity: string, id: string): Promise
   });
   return handleResponse<{ success: boolean; id: string }>(res);
 }
+
+export async function triggerGoogleSync(): Promise<{ success: boolean; message: string; spreadsheetUrl?: string }> {
+  const res = await fetch('/api/sync-google-sheets', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  return handleResponse<{ success: boolean; message: string; spreadsheetUrl?: string }>(res);
+}
+

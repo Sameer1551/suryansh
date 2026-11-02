@@ -112,6 +112,60 @@ app.post('/api/seed', async (req, res) => {
   }
 });
 
+const SYNC_SCRIPT_PATH = path.join(__dirname, '..', 'scripts', 'sync_to_google_sheets.py');
+
+app.post('/api/sync-google-sheets', async (req, res) => {
+  try {
+    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+    const proc = spawn(pythonCmd, [SYNC_SCRIPT_PATH], {
+      windowsHide: true,
+      env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    proc.stdout.on('data', (chunk) => {
+      stdout += chunk.toString();
+    });
+
+    proc.stderr.on('data', (chunk) => {
+      stderr += chunk.toString();
+    });
+
+    proc.on('close', (code) => {
+      if (code === 0) {
+        res.json({
+          success: true,
+          message: 'Successfully synced all 9 sheets to Google Drive!',
+          spreadsheetUrl: 'https://docs.google.com/spreadsheets/d/1FJNblvKgeRdnS_Rrn8q3JrhEWhJZ4BrmMSDTXvpS43w/edit',
+          output: stdout,
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: 'SYNC_FAILED',
+          message: stderr || stdout || `Process exited with code ${code}`,
+        });
+      }
+    });
+
+    proc.on('error', (err) => {
+      res.status(500).json({
+        success: false,
+        error: 'SPAWN_ERROR',
+        message: err.message,
+      });
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: 'SERVER_ERROR',
+      message: err.message,
+    });
+  }
+});
+
 app.get('/api/:entity', async (req, res) => {
   const entity = req.params.entity.toLowerCase();
   try {

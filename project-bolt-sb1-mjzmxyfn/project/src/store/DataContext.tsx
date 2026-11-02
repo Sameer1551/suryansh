@@ -36,6 +36,7 @@ import {
   updateRecordInExcel,
   deleteRecordFromExcel,
   seedExcelWithDemo,
+  triggerGoogleSync,
   type ExcelAllData,
   ApiError,
 } from '@/lib/api';
@@ -214,6 +215,9 @@ export interface DataContextValue extends AppState {
   refreshData: () => Promise<void>;
   seedDemoToExcel: () => Promise<void>;
   dismissError: () => void;
+  googleSyncStatus: 'idle' | 'syncing' | 'success' | 'error';
+  googleSyncMessage: string | null;
+  syncToGoogleSheets: () => Promise<boolean>;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -226,6 +230,41 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [excelPath, setExcelPath] = useState(
     'd:\\suryansh\\project-bolt-sb1-mjzmxyfn\\project\\DOP_Master_Industry_Database_Final_Fixed_Dropdowns.xlsx'
   );
+  const [googleSyncStatus, setGoogleSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
+  const [googleSyncMessage, setGoogleSyncMessage] = useState<string | null>(null);
+
+  const syncToGoogleSheets = useCallback(async () => {
+    try {
+      setGoogleSyncStatus('syncing');
+      setGoogleSyncMessage('Syncing to Google Sheets...');
+      const res = await triggerGoogleSync();
+      if (res.success) {
+        setGoogleSyncStatus('success');
+        setGoogleSyncMessage(res.message || 'Successfully synced to Google Sheets!');
+        setTimeout(() => {
+          setGoogleSyncStatus('idle');
+          setGoogleSyncMessage(null);
+        }, 5000);
+        return true;
+      } else {
+        setGoogleSyncStatus('error');
+        setGoogleSyncMessage(res.message || 'Google sync failed');
+        setTimeout(() => {
+          setGoogleSyncStatus('idle');
+          setGoogleSyncMessage(null);
+        }, 6000);
+        return false;
+      }
+    } catch (err: any) {
+      setGoogleSyncStatus('error');
+      setGoogleSyncMessage(err.message || 'Failed to trigger Google sync');
+      setTimeout(() => {
+        setGoogleSyncStatus('idle');
+        setGoogleSyncMessage(null);
+      }, 6000);
+      return false;
+    }
+  }, []);
 
   const refreshData = useCallback(async () => {
     try {
@@ -471,6 +510,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
         refreshData,
         seedDemoToExcel,
         dismissError,
+        googleSyncStatus,
+        googleSyncMessage,
+        syncToGoogleSheets,
       }}
     >
       {children}
