@@ -21,6 +21,8 @@ DEFAULT_EXCEL_FILE = os.path.join(
     PROJECT_DIR, "DOP_Master_Industry_Database_Final_Fixed_Dropdowns.xlsx"
 )
 
+DEFAULT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbytZO_SaqcvsqgWmrb8xBvxd_99lp8R5b7LklsTXAoe2RY3k6DuLY6JFPuN6yHf25KGYw/exec"
+
 
 # ============================================================
 # DEPENDENCY CHECK
@@ -182,7 +184,7 @@ def main():
         sys.exit(1)
 
     cfg = load_config()
-    web_app_url = cfg.get("web_app_url", "").strip()
+    web_app_url = cfg.get("web_app_url", "").strip() or DEFAULT_WEB_APP_URL
 
     # If argument provided on CLI
     if len(sys.argv) > 1 and sys.argv[1].startswith("http"):
