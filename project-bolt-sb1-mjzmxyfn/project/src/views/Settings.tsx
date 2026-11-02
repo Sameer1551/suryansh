@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield, Users, Bell, Database, Lock } from 'lucide-react';
+import { Shield, Users, Bell, Database, Lock, Cloud, ExternalLink } from 'lucide-react';
 import { PageHeader } from '@/components/ui/Common';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -295,6 +295,55 @@ function IntegrationsTab() {
               </Button>
             </div>
             <span className="text-2xs text-text-muted">Status: {syncStatus}</span>
+          </div>
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Google Drive & Google Sheets Cloud Sync"
+          subtitle="Real-time cloud database backup & remote access"
+          action={
+            <Badge tone="success" variant="solid">
+              Connected & Synced
+            </Badge>
+          }
+        />
+        <div className="px-5 pb-5 space-y-4">
+          <p className="text-sm text-text-secondary leading-relaxed">
+            Your master Excel database is linked to Google Drive and Google Sheets under your verified account. All 9 worksheets sync with zero cloud database fees.
+          </p>
+
+          <div className="p-3.5 rounded-lg bg-bg-secondary/40 border border-border-subtle space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-text-muted">Target Google Account:</span>
+              <span className="font-medium text-text-primary">suryanshh.dp@gmail.com</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-text-muted">Cloud Spreadsheet:</span>
+              <span className="text-amber-400 font-medium">DOP Master Industry Database (9 sheets)</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-text-muted">Sync Engine:</span>
+              <span className="text-text-secondary">Google Apps Script Webhook API</span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border-subtle">
+            <a
+              href="https://docs.google.com/spreadsheets/d/1FJNblvKgeRdnS_Rrn8q3JrhEWhJZ4BrmMSDTXvpS43w/edit"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition-colors"
+            >
+              <Cloud size={14} />
+              Open Live Google Sheet
+              <ExternalLink size={12} />
+            </a>
+
+            <span className="text-2xs text-text-muted">
+              Run <code className="text-amber-400">SYNC_GOOGLE_DRIVE.bat</code> to sync anytime
+            </span>
           </div>
         </div>
       </Card>
