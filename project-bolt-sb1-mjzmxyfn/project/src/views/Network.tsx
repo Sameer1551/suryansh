@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Network as NetworkIcon, Plus, Download } from 'lucide-react';
+import { Network as NetworkIcon, Plus, Download, Trash2 } from 'lucide-react';
 import { PageHeader, SearchInput, EmptyState } from '@/components/ui/Common';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -21,6 +21,7 @@ export function NetworkView() {
   const [typeFilter, setTypeFilter] = useState('All');
   const [strengthFilter, setStrengthFilter] = useState('All');
   const [addOpen, setAddOpen] = useState(false);
+  const [networkToDelete, setNetworkToDelete] = useState<NetworkReferral | null>(null);
   const [showMore, setShowMore] = useState(false);
   const today = new Date().toISOString().slice(0, 10);
 
@@ -190,7 +191,20 @@ export function NetworkView() {
                       {n.connectionStrength}
                     </Badge>
                   </div>
-                  <Badge size="xs" className="shrink-0">{n.relationshipType}</Badge>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Badge size="xs">{n.relationshipType}</Badge>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setNetworkToDelete(n);
+                      }}
+                      className="p-0.5 text-text-muted hover:text-status-error rounded transition-colors"
+                      title="Delete Relationship"
+                    >
+                      <Trash2 size={11} />
+                    </button>
+                  </div>
                 </div>
                 <div className="text-3xs text-text-muted truncate mb-1">
                   {n.organisationName || 'Independent'}
@@ -228,6 +242,42 @@ export function NetworkView() {
           ))}
         </div>
       )}
+
+      {/* Delete Relationship Modal */}
+      <Modal
+        open={!!networkToDelete}
+        onClose={() => setNetworkToDelete(null)}
+        title="Delete Relationship"
+        size="sm"
+        footer={
+          <div className="flex items-center justify-end gap-2 w-full">
+            <Button variant="ghost" size="sm" onClick={() => setNetworkToDelete(null)}>Cancel</Button>
+            <Button
+              variant="danger"
+              size="sm"
+              icon={<Trash2 size={13} />}
+              onClick={async () => {
+                if (!networkToDelete) return;
+                const target = networkToDelete;
+                setNetworkToDelete(null);
+                await dispatch({ type: 'DELETE_NETWORK', payload: target.id });
+                addActivity('network_added', `Deleted relationship with ${target.contactName}`, 'Owner');
+              }}
+            >
+              Delete Relationship
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-2 py-1">
+          <p className="text-sm text-text-primary">
+            Delete relationship with <strong className="text-accent">{networkToDelete?.contactName}</strong>?
+          </p>
+          <p className="text-2xs text-text-muted">
+            This permanently removes the relationship from your workspace and Excel sheet. Syncing to Google Sheets will also remove it from Google Sheets.
+          </p>
+        </div>
+      </Modal>
 
       <Modal
         open={addOpen}

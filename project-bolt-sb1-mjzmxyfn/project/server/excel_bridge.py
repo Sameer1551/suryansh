@@ -747,6 +747,49 @@ def action_delete_row(entity_key: str, record_id: str) -> Dict[str, Any]:
 
     return {"success": True, "id": record_id}
 
+def action_clear_all() -> Dict[str, Any]:
+    if check_file_locked(EXCEL_PATH):
+        return {
+            "success": False,
+            "error": "FILE_LOCKED",
+            "message": "The Excel file is currently open in another program. Please close it before clearing.",
+        }
+
+    try:
+        wb = openpyxl.load_workbook(EXCEL_PATH, data_only=False)
+    except Exception as e:
+        return {"success": False, "error": "LOAD_ERROR", "message": str(e)}
+
+    cleared = {}
+    for entity_key, cfg in SHEET_CONFIGS.items():
+        sheet_name = cfg["sheet_name"]
+        if sheet_name not in wb.sheetnames:
+            continue
+        ws = wb[sheet_name]
+
+        count = 0
+        for r in range(2, ws.max_row + 1):
+            val = ws.cell(row=r, column=1).value
+            if val is not None and str(val).strip():
+                count += 1
+
+        if ws.max_row >= 2:
+            ws.delete_rows(2, ws.max_row - 1)
+
+        cleared[entity_key] = count
+
+    saved, err = save_workbook_safely(wb, EXCEL_PATH)
+    if not saved:
+        if err == "FILE_LOCKED":
+            return {
+                "success": False,
+                "error": "FILE_LOCKED",
+                "message": "The Excel file is currently open in Excel. Please close it and retry.",
+            }
+        return {"success": False, "error": "SAVE_ERROR", "message": str(err)}
+
+    return {"success": True, "cleared": cleared}
+
 def action_seed_demo(seed_data: Dict[str, List[Dict[str, Any]]]) -> Dict[str, Any]:
     if check_file_locked(EXCEL_PATH):
         return {
@@ -916,6 +959,11 @@ def main():
     if action == "seed_demo":
         payload = get_json_payload(2)
         res = action_seed_demo(payload)
+        print(json.dumps(res))
+        return
+
+    if action == "clear_all":
+        res = action_clear_all()
         print(json.dumps(res))
         return
 

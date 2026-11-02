@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Clock, MapPin, User, Download, DollarSign } from 'lucide-react';
+import { Plus, Clock, MapPin, User, Download, DollarSign, Trash2 } from 'lucide-react';
 import { PageHeader, EmptyState } from '@/components/ui/Common';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -36,6 +36,7 @@ const stageTone: Record<OpportunityStage, 'info' | 'warning' | 'accent' | 'succe
 export function OpportunitiesView() {
   const { opportunities, contacts, organisations, dispatch, genId, addActivity } = useData();
   const [addOpen, setAddOpen] = useState(false);
+  const [oppToDelete, setOppToDelete] = useState<Opportunity | null>(null);
   const [showMore, setShowMore] = useState(false);
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const today = new Date().toISOString().slice(0, 10);
@@ -222,7 +223,20 @@ export function OpportunitiesView() {
                   >
                     <div className="flex items-start justify-between gap-2 mb-1.5">
                       <div className="text-sm font-medium text-text-primary leading-snug">{opp.name}</div>
-                      <Badge tone={stageTone[opp.stage]}>{opp.stage}</Badge>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Badge tone={stageTone[opp.stage]}>{opp.stage}</Badge>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOppToDelete(opp);
+                          }}
+                          className="p-0.5 text-text-muted hover:text-status-error rounded transition-colors"
+                          title="Delete Opportunity"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
                     </div>
                     <div className="text-2xs text-text-muted mb-2">
                       {opp.id} {opp.organisationName ? `· ${opp.organisationName}` : ''}
@@ -267,6 +281,42 @@ export function OpportunitiesView() {
           );
         })}
       </div>
+
+      {/* Delete Opportunity Modal */}
+      <Modal
+        open={!!oppToDelete}
+        onClose={() => setOppToDelete(null)}
+        title="Delete Opportunity"
+        size="sm"
+        footer={
+          <div className="flex items-center justify-end gap-2 w-full">
+            <Button variant="ghost" size="sm" onClick={() => setOppToDelete(null)}>Cancel</Button>
+            <Button
+              variant="danger"
+              size="sm"
+              icon={<Trash2 size={13} />}
+              onClick={async () => {
+                if (!oppToDelete) return;
+                const target = oppToDelete;
+                setOppToDelete(null);
+                await dispatch({ type: 'DELETE_OPPORTUNITY', payload: target.id });
+                addActivity('opportunity_updated', `Deleted opportunity ${target.name}`, 'Owner');
+              }}
+            >
+              Delete Opportunity
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-2 py-1">
+          <p className="text-sm text-text-primary">
+            Delete opportunity <strong className="text-accent">{oppToDelete?.name}</strong>?
+          </p>
+          <p className="text-2xs text-text-muted">
+            This permanently removes the opportunity from your workspace and Excel sheet. Syncing to Google Sheets will also remove it from Google Sheets.
+          </p>
+        </div>
+      </Modal>
 
       <Modal
         open={addOpen}

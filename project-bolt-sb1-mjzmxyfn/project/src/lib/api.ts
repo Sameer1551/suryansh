@@ -109,3 +109,11 @@ export async function triggerGoogleSync(): Promise<{ success: boolean; message: 
   return handleResponse<{ success: boolean; message: string; spreadsheetUrl?: string }>(res);
 }
 
+export async function clearAllDataFromExcel(): Promise<{ success: boolean; cleared: Record<string, number> }> {
+  const res = await fetch('/api/clear-all', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  return handleResponse<{ success: boolean; cleared: Record<string, number> }>(res);
+}
+

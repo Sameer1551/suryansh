@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Shield, Users, Bell, Database, Lock, Cloud, ExternalLink } from 'lucide-react';
+import { Shield, Users, Bell, Database, Lock, Cloud, ExternalLink, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/Common';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Input, Select, Checkbox } from '@/components/ui/Form';
+import { Modal } from '@/components/ui';
 import { currentUser, teamMembers, type User } from '@/data/demo';
 import { useData } from '@/store/DataContext';
 
@@ -214,11 +215,15 @@ function IntegrationsTab() {
     isFileLocked,
     refreshData,
     seedDemoToExcel,
+    clearAllProjectData,
   } = useData();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
   const [seedSuccess, setSeedSuccess] = useState(false);
+  const [clearSuccess, setClearSuccess] = useState(false);
+  const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -285,6 +290,12 @@ function IntegrationsTab() {
             </div>
           )}
 
+          {clearSuccess && (
+            <div className="p-3 rounded-lg bg-status-success/10 border border-status-success/30 text-xs text-status-success">
+              All project data has been cleared from Excel and Google Sheets!
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border-subtle">
             <div className="flex items-center gap-2">
               <Button size="sm" variant="secondary" onClick={handleRefresh} disabled={isRefreshing}>
@@ -293,11 +304,62 @@ function IntegrationsTab() {
               <Button size="sm" variant="ghost" onClick={handleSeed} disabled={isSeeding}>
                 {isSeeding ? 'Seeding...' : 'Seed Sample Data to Excel'}
               </Button>
+              <Button
+                size="sm"
+                variant="danger"
+                icon={<Trash2 size={13} />}
+                onClick={() => setClearConfirmOpen(true)}
+                disabled={isClearing}
+              >
+                {isClearing ? 'Clearing...' : 'Clear All Project Data'}
+              </Button>
             </div>
             <span className="text-2xs text-text-muted">Status: {syncStatus}</span>
           </div>
         </div>
       </Card>
+
+      {/* Clear All Confirmation Modal */}
+      <Modal
+        open={clearConfirmOpen}
+        onClose={() => setClearConfirmOpen(false)}
+        title="Clear All Project Data"
+        size="sm"
+        footer={
+          <div className="flex items-center justify-end gap-2 w-full">
+            <Button variant="ghost" size="sm" onClick={() => setClearConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              icon={<Trash2 size={13} />}
+              onClick={async () => {
+                setClearConfirmOpen(false);
+                setIsClearing(true);
+                const ok = await clearAllProjectData();
+                setIsClearing(false);
+                if (ok) {
+                  setClearSuccess(true);
+                  setTimeout(() => setClearSuccess(false), 5000);
+                }
+              }}
+            >
+              Yes, Clear All Data
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-2 py-1">
+          <p className="text-sm font-semibold text-status-error">
+            Are you sure you want to delete ALL data from this project?
+          </p>
+          <p className="text-2xs text-text-muted leading-relaxed">
+            This will permanently remove all records from Organisations, Contacts, Outreach, Follow-ups, Opportunities, Network, Research, and Portfolio.
+            Both your local Excel file and your Google Sheet will be updated to be completely empty and ready for fresh data.
+          </p>
+        </div>
+      </Modal>
 
       <Card>
         <CardHeader

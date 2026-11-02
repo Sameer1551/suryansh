@@ -112,6 +112,19 @@ app.post('/api/seed', async (req, res) => {
   }
 });
 
+app.post('/api/clear-all', async (req, res) => {
+  try {
+    const result = await runBridge(['clear_all']);
+    if (!result.success) {
+      const status = result.error === 'FILE_LOCKED' ? 423 : 500;
+      return res.status(status).json(result);
+    }
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'SERVER_ERROR', message: err.message });
+  }
+});
+
 const SYNC_SCRIPT_PATH = path.join(__dirname, '..', 'scripts', 'sync_to_google_sheets.py');
 
 app.post('/api/sync-google-sheets', async (req, res) => {

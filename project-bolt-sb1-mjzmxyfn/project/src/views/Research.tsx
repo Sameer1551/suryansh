@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, CheckCircle2, Circle, Clock, Download, ExternalLink } from 'lucide-react';
+import { Plus, CheckCircle2, Circle, Clock, Download, ExternalLink, Trash2 } from 'lucide-react';
 import { PageHeader, SearchInput, EmptyState } from '@/components/ui/Common';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -20,6 +20,7 @@ export function ResearchView() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [addOpen, setAddOpen] = useState(false);
+  const [researchToDelete, setResearchToDelete] = useState<ResearchEntry | null>(null);
   const [showMore, setShowMore] = useState(false);
   const today = new Date().toISOString().slice(0, 10);
 
@@ -248,12 +249,56 @@ export function ResearchView() {
                       Verify
                     </Button>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => setResearchToDelete(r)}
+                    className="p-1 text-text-muted hover:text-status-error rounded transition-colors ml-1"
+                    title="Delete Research Entry"
+                  >
+                    <Trash2 size={13} />
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         )}
       </Card>
+
+      {/* Delete Research Modal */}
+      <Modal
+        open={!!researchToDelete}
+        onClose={() => setResearchToDelete(null)}
+        title="Delete Research Entry"
+        size="sm"
+        footer={
+          <div className="flex items-center justify-end gap-2 w-full">
+            <Button variant="ghost" size="sm" onClick={() => setResearchToDelete(null)}>Cancel</Button>
+            <Button
+              variant="danger"
+              size="sm"
+              icon={<Trash2 size={13} />}
+              onClick={async () => {
+                if (!researchToDelete) return;
+                const target = researchToDelete;
+                setResearchToDelete(null);
+                await dispatch({ type: 'DELETE_RESEARCH', payload: target.id });
+                addActivity('research_added', `Deleted research target ${target.name}`, 'Owner');
+              }}
+            >
+              Delete Entry
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-2 py-1">
+          <p className="text-sm text-text-primary">
+            Delete research entry for <strong className="text-accent">{researchToDelete?.name}</strong>?
+          </p>
+          <p className="text-2xs text-text-muted">
+            This permanently removes the entry from your workspace and Excel sheet. Syncing to Google Sheets will also remove it from Google Sheets.
+          </p>
+        </div>
+      </Modal>
 
       <Modal
         open={addOpen}

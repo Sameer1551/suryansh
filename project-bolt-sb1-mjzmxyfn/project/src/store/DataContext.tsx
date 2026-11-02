@@ -37,6 +37,7 @@ import {
   deleteRecordFromExcel,
   seedExcelWithDemo,
   triggerGoogleSync,
+  clearAllDataFromExcel,
   type ExcelAllData,
   ApiError,
 } from '@/lib/api';
@@ -81,19 +82,19 @@ function loadInitialPortfolio(): PortfolioProject[] {
       } catch {}
     }
   }
-  return seedPortfolio;
+  return [];
 }
 
 const initialState: AppState = {
-  organisations: seedOrgs,
-  contacts: seedContacts,
-  outreach: seedOutreach,
-  followUps: seedFollowUps,
-  opportunities: seedOpps,
-  network: seedNetwork,
-  research: seedResearch,
+  organisations: [],
+  contacts: [],
+  outreach: [],
+  followUps: [],
+  opportunities: [],
+  network: [],
+  research: [],
   portfolio: loadInitialPortfolio(),
-  activity: seedActivity,
+  activity: [],
   dropdowns: {},
 };
 
@@ -227,6 +228,7 @@ export interface DataContextValue extends AppState {
   googleSyncStatus: 'idle' | 'syncing' | 'success' | 'error';
   googleSyncMessage: string | null;
   syncToGoogleSheets: () => Promise<boolean>;
+  clearAllProjectData: () => Promise<boolean>;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -292,57 +294,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
           d.contacts.length +
           d.outreach.length +
           d.followups.length +
-          d.opportunities.length +
-          d.network.length +
-          d.research.length;
-
-        if (totalRows === 0) {
-          // Auto-seed Excel so the spreadsheet is never completely blank
-          try {
-            await seedExcelWithDemo({
-              organisations: seedOrgs,
-              contacts: seedContacts,
-              outreach: seedOutreach,
-              followups: seedFollowUps,
-              opportunities: seedOpps,
-              network: seedNetwork,
-              research: seedResearch,
-            });
-            const recheck = await fetchAllExcelData();
-            if (recheck.success && recheck.data) {
-              const rd = recheck.data;
-              baseDispatch({
-                type: 'SET_ALL_DATA',
-                payload: {
-                  organisations: rd.organisations,
-                  contacts: rd.contacts,
-                  outreach: rd.outreach,
-                  followUps: rd.followups,
-                  opportunities: rd.opportunities,
-                  network: rd.network,
-                  research: rd.research,
-                  dropdowns: rd.dropdowns || {},
-                },
-              });
-              setSyncStatus('saved');
-              setLastSyncError(null);
-              return;
-            }
-          } catch (seedErr) {
-            console.warn('Auto-seed to Excel failed:', seedErr);
-          }
-        }
-
         baseDispatch({
           type: 'SET_ALL_DATA',
           payload: {
-            organisations: d.organisations.length > 0 ? d.organisations : seedOrgs,
-            contacts: d.contacts.length > 0 ? d.contacts : seedContacts,
-            outreach: d.outreach.length > 0 ? d.outreach : seedOutreach,
-            followUps: d.followups.length > 0 ? d.followups : seedFollowUps,
-            opportunities: d.opportunities.length > 0 ? d.opportunities : seedOpps,
-            network: d.network.length > 0 ? d.network : seedNetwork,
-            research: d.research.length > 0 ? d.research : seedResearch,
+            organisations: d.organisations || [],
+            contacts: d.contacts || [],
+            outreach: d.outreach || [],
+            followUps: d.followups || [],
+            opportunities: d.opportunities || [],
+            network: d.network || [],
+            research: d.research || [],
             dropdowns: d.dropdowns || {},
           },
         });
@@ -509,6 +470,44 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const clearAllProjectData = useCallback(async () => {
+    try {
+      setSyncStatus('saving');
+      const res = await clearAllDataFromExcel();
+      if (!res.success) {
+        throw new Error('Failed to clear Excel workbook');
+      }
+      baseDispatch({
+        type: 'SET_ALL_DATA',
+        payload: {
+          organisations: [],
+          contacts: [],
+          outreach: [],
+          followUps: [],
+          opportunities: [],
+          network: [],
+          research: [],
+          portfolio: [],
+          activity: [],
+        },
+      });
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('suryansh_portfolio');
+      }
+      setSyncStatus('saved');
+      setLastSyncError(null);
+
+      // Immediately sync clean empty state to Google Sheets
+      await syncToGoogleSheets();
+      return true;
+    } catch (err: any) {
+      console.error('Failed to clear project data:', err);
+      setSyncStatus('error');
+      setLastSyncError(err.message || 'Failed to clear all data');
+      return false;
+    }
+  }, [syncToGoogleSheets]);
+
   const dismissError = () => {
     setLastSyncError(null);
     setIsFileLocked(false);
@@ -531,6 +530,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         googleSyncStatus,
         googleSyncMessage,
         syncToGoogleSheets,
+        clearAllProjectData,
       }}
     >
       {children}
