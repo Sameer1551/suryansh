@@ -23,3 +23,6 @@ dist-ssr
 .env
 __pycache__/
 *.py[cod]
+credentials.json
+token.json
+google_sync_config.json
