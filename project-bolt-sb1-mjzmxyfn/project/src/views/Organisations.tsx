@@ -177,17 +177,18 @@ export function OrganisationsView({ onOpenProfile }: Props) {
 
       <OrgAddModal open={addOpen} onClose={() => setAddOpen(false)} />
 
-      <Modal open={!!orgToDelete} onClose={() => setOrgToDelete(null)} title="Delete Organisation" size="sm">
-        <div className="p-5 space-y-4">
-          <p className="text-sm text-text-secondary">
-            Are you sure you want to delete <strong className="text-text-primary">{orgToDelete?.name}</strong>? This will permanently remove the organisation and sync to your Excel sheet.
-          </p>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="secondary" size="sm" onClick={() => setOrgToDelete(null)}>Cancel</Button>
+      <Modal
+        open={!!orgToDelete}
+        onClose={() => setOrgToDelete(null)}
+        title="Delete Organisation"
+        size="sm"
+        footer={
+          <div className="flex items-center justify-end gap-2 w-full">
+            <Button variant="ghost" size="sm" onClick={() => setOrgToDelete(null)}>Cancel</Button>
             <Button
               variant="danger"
               size="sm"
-              icon={<Trash2 size={14} />}
+              icon={<Trash2 size={13} />}
               onClick={() => {
                 if (orgToDelete) {
                   dispatch({ type: 'DELETE_ORG', payload: orgToDelete.id });
@@ -199,6 +200,15 @@ export function OrganisationsView({ onOpenProfile }: Props) {
               Delete Organisation
             </Button>
           </div>
+        }
+      >
+        <div className="space-y-2 py-1">
+          <p className="text-sm text-text-primary">
+            Are you sure you want to delete <strong className="text-accent">{orgToDelete?.name}</strong>?
+          </p>
+          <p className="text-2xs text-text-muted">
+            This permanently removes the organisation from your workspace and Excel sheet. Syncing to Google Sheets will also remove it from Google Sheets.
+          </p>
         </div>
       </Modal>
     </div>
@@ -811,17 +821,18 @@ export function OrganisationProfile({ id, onBack, onOpenContact }: { id: string;
 
       <OrgEditModal org={org} open={editOpen} onClose={() => setEditOpen(false)} />
 
-      <Modal open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)} title="Delete Organisation" size="sm">
-        <div className="p-5 space-y-4">
-          <p className="text-sm text-text-secondary">
-            Are you sure you want to delete <strong className="text-text-primary">{org.name}</strong>? This will permanently remove the organisation and sync to your Excel sheet.
-          </p>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="secondary" size="sm" onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
+      <Modal
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        title="Delete Organisation"
+        size="sm"
+        footer={
+          <div className="flex items-center justify-end gap-2 w-full">
+            <Button variant="ghost" size="sm" onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
             <Button
               variant="danger"
               size="sm"
-              icon={<Trash2 size={14} />}
+              icon={<Trash2 size={13} />}
               onClick={() => {
                 dispatch({ type: 'DELETE_ORG', payload: org.id });
                 addActivity('org_updated', `Deleted organisation ${org.name}`, 'Owner');
@@ -832,6 +843,15 @@ export function OrganisationProfile({ id, onBack, onOpenContact }: { id: string;
               Delete Organisation
             </Button>
           </div>
+        }
+      >
+        <div className="space-y-2 py-1">
+          <p className="text-sm text-text-primary">
+            Are you sure you want to delete <strong className="text-accent">{org.name}</strong>?
+          </p>
+          <p className="text-2xs text-text-muted">
+            This permanently removes the organisation from your workspace and Excel sheet. Syncing to Google Sheets will also remove it from Google Sheets.
+          </p>
         </div>
       </Modal>
     </div>

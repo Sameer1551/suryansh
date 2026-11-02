@@ -191,17 +191,18 @@ export function ContactsView({ onOpenProfile }: Props) {
 
       <ContactAddModal open={addOpen} onClose={() => setAddOpen(false)} />
 
-      <Modal open={!!contactToDelete} onClose={() => setContactToDelete(null)} title="Delete Contact" size="sm">
-        <div className="p-5 space-y-4">
-          <p className="text-sm text-text-secondary">
-            Are you sure you want to delete <strong className="text-text-primary">{contactToDelete?.fullName}</strong>? This will permanently remove the contact and sync to your Excel sheet.
-          </p>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="secondary" size="sm" onClick={() => setContactToDelete(null)}>Cancel</Button>
+      <Modal
+        open={!!contactToDelete}
+        onClose={() => setContactToDelete(null)}
+        title="Delete Contact"
+        size="sm"
+        footer={
+          <div className="flex items-center justify-end gap-2 w-full">
+            <Button variant="ghost" size="sm" onClick={() => setContactToDelete(null)}>Cancel</Button>
             <Button
               variant="danger"
               size="sm"
-              icon={<Trash2 size={14} />}
+              icon={<Trash2 size={13} />}
               onClick={() => {
                 if (contactToDelete) {
                   dispatch({ type: 'DELETE_CONTACT', payload: contactToDelete.id });
@@ -213,6 +214,15 @@ export function ContactsView({ onOpenProfile }: Props) {
               Delete Contact
             </Button>
           </div>
+        }
+      >
+        <div className="space-y-2 py-1">
+          <p className="text-sm text-text-primary">
+            Are you sure you want to delete <strong className="text-accent">{contactToDelete?.fullName}</strong>?
+          </p>
+          <p className="text-2xs text-text-muted">
+            This permanently removes the contact from your workspace and Excel sheet. Syncing to Google Sheets will also remove it from Google Sheets.
+          </p>
         </div>
       </Modal>
     </div>
@@ -1081,17 +1091,18 @@ export function ContactProfile({ id, onBack }: { id: string; onBack: () => void 
       <ContactEditModal contact={contact} open={editOpen} onClose={() => setEditOpen(false)} />
       <LogOutreachModal contactId={id} open={outreachOpen} onClose={() => setOutreachOpen(false)} />
 
-      <Modal open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)} title="Delete Contact" size="sm">
-        <div className="p-5 space-y-4">
-          <p className="text-sm text-text-secondary">
-            Are you sure you want to delete <strong className="text-text-primary">{contact.fullName}</strong>? This will permanently remove the contact and sync to your Excel sheet.
-          </p>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="secondary" size="sm" onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
+      <Modal
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        title="Delete Contact"
+        size="sm"
+        footer={
+          <div className="flex items-center justify-end gap-2 w-full">
+            <Button variant="ghost" size="sm" onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
             <Button
               variant="danger"
               size="sm"
-              icon={<Trash2 size={14} />}
+              icon={<Trash2 size={13} />}
               onClick={() => {
                 dispatch({ type: 'DELETE_CONTACT', payload: contact.id });
                 addActivity('org_updated', `Deleted contact ${contact.fullName}`, 'Owner');
@@ -1102,6 +1113,15 @@ export function ContactProfile({ id, onBack }: { id: string; onBack: () => void 
               Delete Contact
             </Button>
           </div>
+        }
+      >
+        <div className="space-y-2 py-1">
+          <p className="text-sm text-text-primary">
+            Are you sure you want to delete <strong className="text-accent">{contact.fullName}</strong>?
+          </p>
+          <p className="text-2xs text-text-muted">
+            This permanently removes the contact from your workspace and Excel sheet. Syncing to Google Sheets will also remove it from Google Sheets.
+          </p>
         </div>
       </Modal>
     </div>

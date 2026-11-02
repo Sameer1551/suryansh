@@ -1,4 +1,5 @@
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -8,10 +9,11 @@ interface ModalProps {
   subtitle?: string;
   children: ReactNode;
   footer?: ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 }
 
 const sizeClasses = {
+  xs: 'max-w-xs',
   sm: 'max-w-sm',
   md: 'max-w-md',
   lg: 'max-w-2xl',
@@ -19,6 +21,12 @@ const sizeClasses = {
 };
 
 export function Modal({ open, onClose, title, subtitle, children, footer, size = 'md' }: ModalProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -30,30 +38,53 @@ export function Modal({ open, onClose, title, subtitle, children, footer, size =
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  const modalElement = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose} />
-      <div className={`relative w-full ${sizeClasses[size]} my-auto bg-bg-card border border-border rounded-xl shadow-2xl animate-scale-in flex flex-col max-h-[90vh]`}>
-        <div className="flex items-start justify-between px-5 py-3 border-b border-border-subtle shrink-0">
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
+        onClick={onClose}
+      />
+
+      {/* Modal Dialog Box */}
+      <div
+        className={`relative w-full ${sizeClasses[size] || sizeClasses.md} my-auto bg-bg-card border border-border rounded-xl shadow-2xl animate-scale-in flex flex-col max-h-[88vh] z-10`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between px-4 py-2.5 sm:px-5 sm:py-3 border-b border-border-subtle shrink-0">
           <div>
-            <h2 className="text-base font-heading font-semibold text-text-primary tracking-tight">{title}</h2>
-            {subtitle && <p className="text-xs text-text-secondary mt-0.5">{subtitle}</p>}
+            <h2 className="text-sm sm:text-base font-heading font-semibold text-text-primary tracking-tight">
+              {title}
+            </h2>
+            {subtitle && <p className="text-2xs sm:text-xs text-text-secondary mt-0.5">{subtitle}</p>}
           </div>
-          <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors p-1 -mr-1 rounded-md hover:bg-bg-secondary">
-            <X size={18} />
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-text-muted hover:text-text-primary transition-colors p-1 -mr-1 rounded-md hover:bg-bg-secondary"
+            title="Close"
+          >
+            <X size={16} />
           </button>
         </div>
-        <div className="px-5 py-3.5 overflow-y-auto flex-1">
+
+        {/* Content Body */}
+        <div className="px-4 py-3 sm:px-5 sm:py-3.5 overflow-y-auto flex-1 text-sm text-text-secondary">
           {children}
         </div>
+
+        {/* Footer Actions */}
         {footer && (
-          <div className="flex items-center justify-end gap-2 px-5 py-2.5 border-t border-border-subtle shrink-0">
+          <div className="flex items-center justify-end gap-2 px-4 py-2.5 sm:px-5 border-t border-border-subtle shrink-0 bg-bg-secondary/40 rounded-b-xl">
             {footer}
           </div>
         )}
       </div>
     </div>
   );
+
+  return createPortal(modalElement, document.body);
 }

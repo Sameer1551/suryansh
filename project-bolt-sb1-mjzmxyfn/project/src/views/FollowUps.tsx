@@ -37,10 +37,13 @@ function computeAlert(scheduledDate: string, status: FollowUpStatus): string {
 }
 
 export function FollowUpsView() {
-  const { followUps } = useData();
+  const { followUps, dispatch, addActivity } = useData();
   const [mode, setMode] = useState<'list' | 'calendar'>('list');
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [addOpen, setAddOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<FollowUp | null>(null);
+  const [rescheduleTarget, setRescheduleTarget] = useState<FollowUp | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState('');
 
   const filtered = followUps.filter((f) => {
     if (statusFilter === 'All') return true;
@@ -147,7 +150,17 @@ export function FollowUpsView() {
               <EmptyState title="No follow-ups" description="No follow-ups match the selected filter." />
             </Card>
           ) : (
-            filtered.map((f) => <FollowUpCard key={f.id} followUp={f} />)
+            filtered.map((f) => (
+              <FollowUpCard
+                key={f.id}
+                followUp={f}
+                onDelete={() => setDeleteTarget(f)}
+                onReschedule={() => {
+                  setRescheduleTarget(f);
+                  setRescheduleDate(f.scheduledDate);
+                }}
+              />
+            ))
           )}
         </div>
       ) : (
@@ -155,15 +168,95 @@ export function FollowUpsView() {
       )}
 
       <FollowUpAddModal open={addOpen} onClose={() => setAddOpen(false)} />
+
+      {/* Reschedule Modal */}
+      <Modal
+        open={!!rescheduleTarget}
+        onClose={() => setRescheduleTarget(null)}
+        title="Reschedule Follow-up"
+        subtitle={rescheduleTarget ? rescheduleTarget.contactName : undefined}
+        size="sm"
+        footer={
+          <div className="flex items-center justify-end gap-2 w-full">
+            <Button variant="ghost" size="sm" onClick={() => setRescheduleTarget(null)}>Cancel</Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                if (!rescheduleTarget) return;
+                dispatch({
+                  type: 'UPDATE_FOLLOWUP',
+                  payload: {
+                    id: rescheduleTarget.id,
+                    scheduledDate: rescheduleDate,
+                    alertStatus: computeAlert(rescheduleDate, rescheduleTarget.status) as any,
+                  },
+                });
+                setRescheduleTarget(null);
+              }}
+            >
+              Save Date
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-3">
+          <div>
+            <Input label="New Follow-up Date" type="date" value={rescheduleDate} onChange={(e) => setRescheduleDate(e.target.value)} />
+            <QuickDateIntervals value={rescheduleDate} onChange={(date) => setRescheduleDate(date)} />
+          </div>
+        </div>
+      </Modal>
+
+      {/* Compact Delete Confirmation Modal (Always visible, no scrolling needed) */}
+      <Modal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete Follow-up"
+        size="sm"
+        footer={
+          <div className="flex items-center justify-end gap-2 w-full">
+            <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+            <Button
+              variant="danger"
+              size="sm"
+              icon={<Trash2 size={13} />}
+              onClick={async () => {
+                if (!deleteTarget) return;
+                const target = deleteTarget;
+                setDeleteTarget(null);
+                await dispatch({ type: 'DELETE_FOLLOWUP', payload: target.id });
+                addActivity('followup_completed', `Follow-up with ${target.contactName} deleted`, 'Owner');
+              }}
+            >
+              Delete Follow-up
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-2 py-1">
+          <p className="text-sm text-text-primary">
+            Delete follow-up with <strong className="text-accent">{deleteTarget?.contactName || 'this contact'}</strong>?
+          </p>
+          <p className="text-2xs text-text-muted">
+            This permanently removes the follow-up from your workspace and Excel database. When you sync to Google Sheets, it will be removed from Google Sheets as well.
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }
 
-function FollowUpCard({ followUp: f }: { followUp: FollowUp }) {
+function FollowUpCard({
+  followUp: f,
+  onDelete,
+  onReschedule,
+}: {
+  followUp: FollowUp;
+  onDelete: () => void;
+  onReschedule: () => void;
+}) {
   const { dispatch, addActivity } = useData();
-  const [rescheduleOpen, setRescheduleOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [newDate, setNewDate] = useState(f.scheduledDate);
   const alert = f.alertStatus || computeAlert(f.scheduledDate, f.status || 'Pending');
 
   const handleComplete = () => {
@@ -182,14 +275,6 @@ function FollowUpCard({ followUp: f }: { followUp: FollowUp }) {
       type: 'UPDATE_FOLLOWUP',
       payload: { id: f.id, status: 'Snoozed', scheduledDate: dateStr, alertStatus: 'UPCOMING' },
     });
-  };
-
-  const handleReschedule = () => {
-    dispatch({
-      type: 'UPDATE_FOLLOWUP',
-      payload: { id: f.id, scheduledDate: newDate, alertStatus: computeAlert(newDate, f.status) as any },
-    });
-    setRescheduleOpen(false);
   };
 
   return (
@@ -263,7 +348,7 @@ function FollowUpCard({ followUp: f }: { followUp: FollowUp }) {
             </button>
             <button
               type="button"
-              onClick={() => setRescheduleOpen(true)}
+              onClick={onReschedule}
               className="inline-flex items-center px-1 py-0.5 rounded bg-bg-secondary hover:bg-border-subtle text-text-secondary text-4xs transition-colors"
               title="Reschedule Date"
             >
@@ -277,58 +362,12 @@ function FollowUpCard({ followUp: f }: { followUp: FollowUp }) {
         )}
         <button
           type="button"
-          onClick={() => setDeleteOpen(true)}
+          onClick={onDelete}
           className="p-0.5 text-text-muted hover:text-status-error ml-auto rounded transition-colors"
           title="Delete Follow-up"
         >
           <Trash2 size={11} />
         </button>
-
-        <Modal
-          open={rescheduleOpen}
-          onClose={() => setRescheduleOpen(false)}
-          title="Reschedule Follow-up"
-          subtitle={f.contactName}
-          size="sm"
-          footer={
-            <>
-              <Button variant="ghost" onClick={() => setRescheduleOpen(false)}>Cancel</Button>
-              <Button variant="primary" onClick={handleReschedule}>Save</Button>
-            </>
-          }
-        >
-          <div className="space-y-3">
-            <div>
-              <Input label="New Follow-up Date" type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} />
-              <QuickDateIntervals value={newDate} onChange={(date) => setNewDate(date)} />
-            </div>
-          </div>
-        </Modal>
-
-        <Modal
-          open={deleteOpen}
-          onClose={() => setDeleteOpen(false)}
-          title="Delete Follow-up"
-          subtitle={`Delete follow-up with ${f.contactName}?`}
-          size="sm"
-          footer={
-            <>
-              <Button variant="ghost" onClick={() => setDeleteOpen(false)}>Cancel</Button>
-              <Button
-                variant="danger"
-                onClick={async () => {
-                  await dispatch({ type: 'DELETE_FOLLOWUP', payload: f.id });
-                  addActivity('followup_completed', `Follow-up with ${f.contactName} deleted`, 'Owner');
-                  setDeleteOpen(false);
-                }}
-              >
-                Delete
-              </Button>
-            </>
-          }
-        >
-          <p className="text-sm text-text-secondary">Are you sure you want to delete this scheduled follow-up?</p>
-        </Modal>
       </div>
     </Card>
   );

@@ -115,9 +115,12 @@ export type Action =
   | { type: 'DELETE_FOLLOWUP'; payload: string }
   | { type: 'ADD_OPPORTUNITY'; payload: Opportunity }
   | { type: 'UPDATE_OPPORTUNITY'; payload: Partial<Opportunity> & { id: string } }
+  | { type: 'DELETE_OPPORTUNITY'; payload: string }
   | { type: 'ADD_NETWORK'; payload: NetworkReferral }
+  | { type: 'DELETE_NETWORK'; payload: string }
   | { type: 'ADD_RESEARCH'; payload: ResearchEntry }
   | { type: 'UPDATE_RESEARCH'; payload: Partial<ResearchEntry> & { id: string } }
+  | { type: 'DELETE_RESEARCH'; payload: string }
   | { type: 'ADD_PORTFOLIO'; payload: PortfolioProject }
   | { type: 'DELETE_PORTFOLIO'; payload: string }
   | { type: 'CLEAR_PORTFOLIO' }
@@ -169,12 +172,18 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, opportunities: [action.payload, ...state.opportunities.filter((o) => o.id !== action.payload.id)] };
     case 'UPDATE_OPPORTUNITY':
       return { ...state, opportunities: state.opportunities.map((o) => o.id === action.payload.id ? { ...o, ...action.payload } : o) };
+    case 'DELETE_OPPORTUNITY':
+      return { ...state, opportunities: state.opportunities.filter((o) => o.id !== action.payload) };
     case 'ADD_NETWORK':
       return { ...state, network: [action.payload, ...state.network.filter((n) => n.id !== action.payload.id)] };
+    case 'DELETE_NETWORK':
+      return { ...state, network: state.network.filter((n) => n.id !== action.payload) };
     case 'ADD_RESEARCH':
       return { ...state, research: [action.payload, ...state.research.filter((r) => r.id !== action.payload.id)] };
     case 'UPDATE_RESEARCH':
       return { ...state, research: state.research.map((r) => r.id === action.payload.id ? { ...r, ...action.payload } : r) };
+    case 'DELETE_RESEARCH':
+      return { ...state, research: state.research.filter((r) => r.id !== action.payload) };
     case 'ADD_PORTFOLIO': {
       const updated = [action.payload, ...state.portfolio.filter((p) => p.id !== action.payload.id)];
       try {
@@ -405,14 +414,23 @@ export function DataProvider({ children }: { children: ReactNode }) {
         case 'UPDATE_OPPORTUNITY':
           await updateRecordInExcel('opportunities', action.payload.id, action.payload);
           break;
+        case 'DELETE_OPPORTUNITY':
+          await deleteRecordFromExcel('opportunities', action.payload);
+          break;
         case 'ADD_NETWORK':
           await addRecordToExcel('network', action.payload);
+          break;
+        case 'DELETE_NETWORK':
+          await deleteRecordFromExcel('network', action.payload);
           break;
         case 'ADD_RESEARCH':
           await addRecordToExcel('research', action.payload);
           break;
         case 'UPDATE_RESEARCH':
           await updateRecordInExcel('research', action.payload.id, action.payload);
+          break;
+        case 'DELETE_RESEARCH':
+          await deleteRecordFromExcel('research', action.payload);
           break;
         default:
           break;

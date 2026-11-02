@@ -192,17 +192,18 @@ export function OutreachView() {
 
       <OutreachAddModal open={addOpen} onClose={() => setAddOpen(false)} />
 
-      <Modal open={!!outreachToDelete} onClose={() => setOutreachToDelete(null)} title="Delete Outreach Record" size="sm">
-        <div className="p-5 space-y-4">
-          <p className="text-sm text-text-secondary">
-            Are you sure you want to delete this outreach record (<strong>{outreachToDelete?.id}</strong> for <strong>{outreachToDelete?.contactName}</strong>)? This will permanently remove it from your workspace and Excel sheet.
-          </p>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="secondary" size="sm" onClick={() => setOutreachToDelete(null)}>Cancel</Button>
+      <Modal
+        open={!!outreachToDelete}
+        onClose={() => setOutreachToDelete(null)}
+        title="Delete Outreach Record"
+        size="sm"
+        footer={
+          <div className="flex items-center justify-end gap-2 w-full">
+            <Button variant="ghost" size="sm" onClick={() => setOutreachToDelete(null)}>Cancel</Button>
             <Button
               variant="danger"
               size="sm"
-              icon={<Trash2 size={14} />}
+              icon={<Trash2 size={13} />}
               onClick={() => {
                 if (outreachToDelete) {
                   dispatch({ type: 'DELETE_OUTREACH', payload: outreachToDelete.id });
@@ -214,6 +215,15 @@ export function OutreachView() {
               Delete Outreach
             </Button>
           </div>
+        }
+      >
+        <div className="space-y-2 py-1">
+          <p className="text-sm text-text-primary">
+            Delete outreach record for <strong className="text-accent">{outreachToDelete?.contactName}</strong>?
+          </p>
+          <p className="text-2xs text-text-muted">
+            This permanently removes the outreach record from your workspace and Excel sheet. Syncing to Google Sheets will also remove it from Google Sheets.
+          </p>
         </div>
       </Modal>
     </div>
