@@ -1,0 +1,29 @@
+=====================================================================
+                    DOP WORKSPACE — HOW TO RUN
+=====================================================================
+
+All project files, Excel databases, and launchers have been organized
+inside:
+   👉 project-bolt-sb1-mjzmxyfn\project\
+
+TO START THE APPLICATION:
+------------------------
+Simply DOUBLE-CLICK:
+
+   👉 "START_PROJECT.bat" (in root or inside project-bolt-sb1-mjzmxyfn\project\)
+   or
+   👉 "Start DOP Workspace" shortcut
+
+WHAT HAPPENS AUTOMATICALLY:
+---------------------------
+1. Antigravity IDE will open with this project folder.
+2. The project backend and database connection will start.
+3. Your default web browser will open automatically to:
+   http://localhost:5173
+4. A shortcut named "DOP Workspace" will also be placed on your Desktop!
+
+DATABASE LOCATION:
+------------------
+The master Excel workbook is located inside the project:
+   project-bolt-sb1-mjzmxyfn\project\DOP_Master_Industry_Database_Final_Fixed_Dropdowns.xlsx
+=====================================================================

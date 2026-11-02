@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    border-color: theme('colors.border.DEFAULT');
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-bg-primary text-text-primary font-body antialiased;
+    margin: 0;
+    min-height: 100vh;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.04) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.05) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(99, 102, 241, 0.03) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight;
+    font-weight: 600;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.2);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.35);
+  }
+
+  /* Remove default focus outline, use ring */
+  :focus-visible {
+    outline: 2px solid theme('colors.accent.DEFAULT');
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .input-base {
+    @apply w-full bg-bg-secondary/80 border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted transition-all duration-150 shadow-sm;
+  }
+  .input-base:focus {
+    @apply border-accent bg-bg-card outline-none ring-2 ring-accent/20;
+  }
+
+  .label-base {
+    @apply block text-2xs font-medium uppercase tracking-wider text-text-secondary mb-1.5;
+  }
+
+  .card-base {
+    @apply bg-bg-card/90 border border-border-subtle rounded-xl backdrop-blur-md shadow-lg shadow-black/20;
+  }
+
+  .font-script {
+    font-family: 'Pinyon Script', 'Great Vibes', cursive;
+  }
+
+  .text-3xs {
+    font-size: 0.625rem;
+    line-height: 0.85rem;
+  }
+
+  .text-4xs {
+    font-size: 0.5625rem;
+    line-height: 0.75rem;
+  }
+}

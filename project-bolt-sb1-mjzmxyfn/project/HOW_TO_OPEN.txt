@@ -1,0 +1,35 @@
+=====================================================================
+                    DOP WORKSPACE — HOW TO RUN
+=====================================================================
+
+Welcome! You do not need any coding experience to use this app.
+
+TO START THE APPLICATION:
+------------------------
+Simply DOUBLE-CLICK:
+
+   👉 "Start DOP Workspace" (or "START_PROJECT.bat")
+
+WHAT HAPPENS AUTOMATICALLY:
+---------------------------
+1. Antigravity IDE will open with this project folder.
+2. The project backend and database connection will start.
+3. Your default web browser will open automatically to:
+   http://localhost:5173
+4. A shortcut named "DOP Workspace" will also be placed on your Desktop!
+
+IMPORTANT:
+----------
+* Keep the small black command window open while you are working.
+* When you are finished, just close the black window to stop the app.
+
+TROUBLESHOOTING / REQUIREMENTS:
+------------------------------
+If this is a brand new computer:
+1. Make sure Node.js is installed:
+   https://nodejs.org/ (Download the LTS version)
+2. Make sure Python 3.8+ is installed:
+   https://www.python.org/ (Check the box "Add Python to PATH" during install)
+
+The starter script will automatically handle everything else!
+=====================================================================
